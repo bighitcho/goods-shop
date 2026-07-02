@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🎀 굿즈샵</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="nav-logo">🎀 굿즈샵</a>
+  <div class="nav-links">
+    <div id="nav-auth"></div>
+    <div class="cart-btn-wrapper">
+      <button class="btn btn-secondary btn-sm" onclick="openCart()">🛒 장바구니</button>
+      <span id="cart-badge" style="display:none"></span>
+    </div>
+  </div>
+</nav>
+
+<div class="hero">
+  <h1>🎀 굿즈샵</h1>
+  <p>귀엽고 특별한 굿즈를 만나보세요 ✨</p>
+</div>
+
+<div class="container">
+  <h2 class="page-title">전체 상품</h2>
+  <p class="page-subtitle">원하는 상품을 골라 장바구니에 담아보세요!</p>
+  <div id="product-grid" class="product-grid">
+    <div class="loading"><div class="spinner"></div></div>
+  </div>
+</div>
+
+<!-- 장바구니 모달 -->
+<div class="modal-overlay" id="cart-modal" onclick="if(event.target===this)closeCart()">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">🛒 장바구니</span>
+      <button class="modal-close" onclick="closeCart()">×</button>
+    </div>
+    <div id="cart-items"></div>
+    <div class="cart-total">
+      <span>합계</span>
+      <span id="cart-total-amount">0원</span>
+    </div>
+    <div class="cart-actions">
+      <button class="btn btn-outline" onclick="closeCart()">계속 쇼핑</button>
+      <button class="btn btn-primary" onclick="goToCheckout()">결제하기 →</button>
+    </div>
+  </div>
+</div>
+
+<footer>© 2025 굿즈샵 · Made with 💕</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/products.js"></script>
+<script>
+(async () => {
+  await renderNav();
+  updateCartBadge();
+
+  const grid = document.getElementById('product-grid');
+  const products = await loadProducts();
+
+  if (products.length === 0) {
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1">
+      <span class="empty-icon">🏪</span>
+      <p>아직 등록된 상품이 없어요</p>
+    </div>`;
+    return;
+  }
+  grid.innerHTML = products.map(renderProductCard).join('');
+})();
+</script>
+</body>
+</html>

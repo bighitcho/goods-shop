@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>내 주문 내역 · 굿즈샵</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="nav-logo">🎀 굿즈샵</a>
+  <div class="nav-links"><div id="nav-auth"></div></div>
+</nav>
+
+<div class="container">
+  <h1 class="page-title">📦 내 주문 내역</h1>
+  <p class="page-subtitle">지금까지 주문한 내역을 확인해보세요</p>
+  <div id="orders-container">
+    <div class="loading"><div class="spinner"></div></div>
+  </div>
+</div>
+
+<footer>© 2025 굿즈샵 · Made with 💕</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/orders.js"></script>
+<script>
+initMyOrders();
+</script>
+</body>
+</html>

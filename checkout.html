@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>결제 · 굿즈샵</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    #payment-widget, #agreement { margin-top: 16px; }
+    .summary-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #F5E8EE; font-size: 14px; }
+    .summary-total { display: flex; justify-content: space-between; padding: 16px 0; font-size: 20px; font-weight: 700; color: var(--pink); }
+    .pay-btn { width: 100%; margin-top: 16px; }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="nav-logo">🎀 굿즈샵</a>
+  <div class="nav-links">
+    <div id="nav-auth"></div>
+    <a href="index.html" class="btn btn-outline btn-sm">← 계속 쇼핑</a>
+  </div>
+</nav>
+
+<div class="container">
+  <h1 class="page-title">💳 결제하기</h1>
+  <p class="page-subtitle">주문 내용을 확인하고 결제를 진행해주세요</p>
+
+  <div class="checkout-layout">
+    <!-- 주문 요약 -->
+    <div class="checkout-summary">
+      <h2 style="font-size:18px;margin-bottom:16px">🛒 주문 상품</h2>
+      <div id="order-summary">
+        <div class="loading"><div class="spinner"></div></div>
+      </div>
+    </div>
+
+    <!-- 결제 위젯 -->
+    <div class="checkout-payment">
+      <h2 style="font-size:18px;margin-bottom:8px">결제 수단</h2>
+      <div id="payment-widget"></div>
+      <div id="agreement"></div>
+      <button class="btn btn-primary btn-lg pay-btn" id="pay-btn" onclick="handlePayment()">
+        결제하기
+      </button>
+      <p style="font-size:12px;color:var(--text-light);text-align:center;margin-top:8px">
+        테스트 모드 · 실제 결제가 되지 않습니다
+      </p>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://js.tosspayments.com/v2/standard"></script>
+<script src="js/config.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/products.js"></script>
+<script src="js/payment.js"></script>
+<script>
+let currentUser = null;
+let currentOrderId = null;
+
+(async () => {
+  currentUser = await requireAuth();
+  if (!currentUser) return;
+
+  await renderNav();
+
+  const cart = getCart();
+  if (cart.length === 0) {
+    showToast('장바구니가 비어있어요!');
+    setTimeout(() => window.location.href = 'index.html', 1200);
+    return;
+  }
+
+  const total = getCartTotal();
+
+  // 주문 요약 렌더
+  const summaryEl = document.getElementById('order-summary');
+  summaryEl.innerHTML = cart.map(i => `
+    <div class="summary-item">
+      <span>${i.name} × ${i.quantity}</span>
+      <span>${(i.price * i.quantity).toLocaleString()}원</span>
+    </div>
+  `).join('') + `<div class="summary-total"><span>합계</span><span>${total.toLocaleString()}원</span></div>`;
+
+  // 결제 위젯 초기화
+  try {
+    await initTossWidget(total);
+  } catch (e) {
+    document.getElementById('payment-widget').innerHTML =
+      `<p style="color:var(--text-light);padding:16px;text-align:center">⚠️ 토스 키 미설정<br><small>js/config.js의 TOSS_CLIENT_KEY를 입력해주세요</small></p>`;
+    document.getElementById('pay-btn').disabled = true;
+  }
+})();
+
+async function handlePayment() {
+  const btn = document.getElementById('pay-btn');
+  btn.textContent = '처리 중...';
+  btn.disabled = true;
+
+  try {
+    const cart = getCart();
+    const { orderId } = await createOrder(currentUser, cart);
+    currentOrderId = orderId;
+    await requestPayment(orderId, `굿즈샵 주문 (${cart.length}종)`, getCartTotal(), currentUser);
+  } catch (e) {
+    console.error(e);
+    showToast('오류가 발생했습니다: ' + e.message);
+    btn.textContent = '결제하기';
+    btn.disabled = false;
+  }
+}
+</script>
+</body>
+</html>

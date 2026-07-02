@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>회원가입 · 굿즈샵</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="nav-logo">🎀 굿즈샵</a>
+  <div class="nav-links"><div id="nav-auth"></div></div>
+</nav>
+
+<div class="container">
+  <div class="form-container card">
+    <h1 class="form-title">🌸 회원가입</h1>
+    <p class="form-subtitle">이미 계정이 있으신가요? <a href="login.html">로그인</a></p>
+
+    <div class="form-group">
+      <label>이름</label>
+      <input type="text" id="name" placeholder="홍길동" autocomplete="name">
+    </div>
+    <div class="form-group">
+      <label>이메일</label>
+      <input type="email" id="email" placeholder="email@example.com" autocomplete="email">
+    </div>
+    <div class="form-group">
+      <label>비밀번호 <small style="color:var(--text-light)">(6자 이상)</small></label>
+      <input type="password" id="password" placeholder="비밀번호 입력" autocomplete="new-password">
+    </div>
+    <div class="form-group">
+      <label>비밀번호 확인</label>
+      <input type="password" id="password-confirm" placeholder="비밀번호 재입력" autocomplete="new-password">
+    </div>
+
+    <p class="error-msg" id="error-msg"></p>
+    <button class="btn btn-primary form-submit" id="signup-btn" onclick="handleSignup()">가입하기</button>
+
+    <p class="form-footer" style="margin-top:20px">
+      <a href="index.html">← 쇼핑 계속하기</a>
+    </p>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js"></script>
+<script src="js/auth.js"></script>
+<script>
+getCurrentUser().then(user => { if (user) window.location.href = 'index.html'; });
+
+async function handleSignup() {
+  const name    = document.getElementById('name').value.trim();
+  const email   = document.getElementById('email').value.trim();
+  const pw      = document.getElementById('password').value;
+  const pwConf  = document.getElementById('password-confirm').value;
+  const btn     = document.getElementById('signup-btn');
+  const errEl   = document.getElementById('error-msg');
+
+  errEl.classList.remove('show');
+
+  if (!name || !email || !pw || !pwConf) {
+    errEl.textContent = '모든 항목을 입력해주세요.';
+    errEl.classList.add('show');
+    return;
+  }
+  if (pw.length < 6) {
+    errEl.textContent = '비밀번호는 6자 이상이어야 합니다.';
+    errEl.classList.add('show');
+    return;
+  }
+  if (pw !== pwConf) {
+    errEl.textContent = '비밀번호가 일치하지 않습니다.';
+    errEl.classList.add('show');
+    return;
+  }
+
+  btn.textContent = '가입 중...';
+  btn.disabled = true;
+
+  const { data, error } = await signUp(email, pw, name);
+
+  if (error) {
+    errEl.textContent = error.message.includes('already') ? '이미 사용 중인 이메일입니다.' : error.message;
+    errEl.classList.add('show');
+    btn.textContent = '가입하기';
+    btn.disabled = false;
+    return;
+  }
+
+  showToast('🎉 가입 완료! 환영합니다!');
+  setTimeout(() => window.location.href = 'index.html', 1200);
+}
+</script>
+</body>
+</html>

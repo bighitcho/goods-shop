@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>결제 완료 · 굿즈샵</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="nav-logo">🎀 굿즈샵</a>
+</nav>
+
+<div class="container">
+  <div class="result-page" id="result">
+    <div class="spinner" style="width:48px;height:48px;margin:0 auto 24px"></div>
+    <p style="color:var(--text-light)">결제를 확인하는 중이에요...</p>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/products.js"></script>
+<script src="js/payment.js"></script>
+<script>
+(async () => {
+  const params     = new URLSearchParams(location.search);
+  const paymentKey = params.get('paymentKey');
+  const orderId    = params.get('orderId');
+  const amount     = Number(params.get('amount'));
+  const resultEl   = document.getElementById('result');
+
+  if (!paymentKey || !orderId || !amount) {
+    resultEl.innerHTML = `
+      <span class="result-icon">⚠️</span>
+      <h1 class="result-title">잘못된 접근입니다</h1>
+      <div class="result-actions">
+        <a href="index.html" class="btn btn-primary">홈으로</a>
+      </div>`;
+    return;
+  }
+
+  try {
+    await confirmPayment(paymentKey, orderId, amount);
+    clearCart();
+
+    resultEl.innerHTML = `
+      <span class="result-icon">🎉</span>
+      <h1 class="result-title">결제가 완료됐어요!</h1>
+      <p class="result-desc">
+        주문해 주셔서 감사합니다 💕<br>
+        주문번호: <strong>${orderId}</strong><br>
+        결제금액: <strong>${amount.toLocaleString()}원</strong>
+      </p>
+      <div class="result-actions">
+        <a href="my-orders.html" class="btn btn-secondary">내 주문 확인</a>
+        <a href="index.html" class="btn btn-primary">계속 쇼핑하기</a>
+      </div>`;
+  } catch (e) {
+    resultEl.innerHTML = `
+      <span class="result-icon">😢</span>
+      <h1 class="result-title">결제 확인 중 오류가 발생했어요</h1>
+      <p class="result-desc">${e.message}</p>
+      <div class="result-actions">
+        <a href="index.html" class="btn btn-primary">홈으로</a>
+      </div>`;
+  }
+})();
+</script>
+</body>
+</html>
